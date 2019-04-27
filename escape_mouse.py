@@ -35,7 +35,7 @@ world = [
 class Persona:
     def __init__(self, img, pos=Vector2(0, 0)):
         sprite = pygame.image.load(img)
-        self.sprite = pygame.transform.scale(sprite, (CASE_SIZE, CASE_SIZE))
+        self.sprite = scale_surface(sprite, (CASE_SIZE, CASE_SIZE))
         self.pos = pos
         self.follower = None
         self.moves = []
@@ -73,6 +73,11 @@ def blur_surface(surface, radius):
     from PIL import Image, ImageFilter
     pil_blured = Image.frombytes('RGBA', surface.get_size(), pygame.image.tostring(surface, 'RGBA')).filter(ImageFilter.GaussianBlur(radius=radius))
     return pygame.image.fromstring(pil_blured.tobytes(), pil_blured.size, pil_blured.mode)
+
+def scale_surface(surface, size):
+    from PIL import Image, ImageFilter
+    im = Image.frombytes('RGBA', surface.get_size(), pygame.image.tostring(surface, 'RGBA')).resize(size, Image.LANCZOS)
+    return pygame.image.fromstring(im.tobytes(), im.size, im.mode)
     
 def main():
     pygame.init()
