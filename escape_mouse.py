@@ -1,5 +1,6 @@
 from enum import IntFlag, IntEnum
 import pygame
+import time
 from pygame.math import Vector2
 
 CASE_SIZE = 96
@@ -66,7 +67,13 @@ def get_init_world_position(flag):
       for j in range(len(world[i])):
           if world[i][j] & flag:
               return Vector2(j, i)
-        
+
+
+def blur_surface(surface, radius):
+    from PIL import Image, ImageFilter
+    pil_blured = Image.frombytes('RGBA', surface.get_size(), pygame.image.tostring(surface, 'RGBA')).filter(ImageFilter.GaussianBlur(radius=radius))
+    return pygame.image.fromstring(pil_blured.tobytes(), pil_blured.size, pil_blured.mode)
+    
 def main():
     pygame.init()
 
@@ -107,11 +114,11 @@ def main():
                     (goal_pos.x*CASE_SIZE, goal_pos.y*CASE_SIZE, CASE_SIZE, CASE_SIZE), 0)
         for p in personas:
             p.draw(screen)
-        if cat.pos == mouse.pos:
-            from PIL import Image, ImageFilter
-            pil_blured = Image.frombytes("RGBA", screen_size, screen.get_view().raw).filter(ImageFilter.GaussianBlur(radius=6))
-            screen.blit(pygame.image.fromstring(pil_blured.tobytes("raw", 'RGBA'), screen_size, 'RGBA'), (0, 0))
-            pygame.display.flip()
+        if cat.pos == mouse.pos or goal_pos == mouse.pos:
+            for radius in range(15):
+              screen.blit(blur_surface(screen, radius/4.0), (0,0))
+              time.sleep(0.02)
+              pygame.display.flip()
             while running:
               for event in pygame.event.get():
                 if event.type == pygame.QUIT:
