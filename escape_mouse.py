@@ -12,6 +12,12 @@ class Item(IntFlag):
   CAT = 4
   GOAL = 8
   
+class Color:
+  WALL = (127, 127, 127)
+  PATH = (255, 255, 255)
+  WON = (127, 255, 0)
+  LOSE = (255, 127, 0)
+
 class Move:
   LEFT = Vector2(-1, 0)
   RIGHT = Vector2(1, 0)
@@ -81,6 +87,7 @@ def scale_surface(surface, size):
     
 def main():
     pygame.init()
+    font = pygame.font.Font('data/Cheese and Mouse.ttf', CASE_SIZE)
 
     pygame.display.set_caption('Escape Mouse!')
     screen_size = ((CASE_SIZE*len(world[0]), CASE_SIZE*len(world)))
@@ -112,7 +119,7 @@ def main():
         for i in range(len(world)):
             for j in range(len(world[i])):
                 pygame.draw.rect(screen,
-                    world[i][j] & Item.PATH and (255,255,255) or (127,127,127),
+                    world[i][j] & Item.PATH and Color.PATH or Color.WALL,
                     (j*CASE_SIZE, i*CASE_SIZE, CASE_SIZE, CASE_SIZE), 0)
         pygame.draw.rect(screen,
                     (255,127,0),
@@ -120,10 +127,28 @@ def main():
         for p in personas:
             p.draw(screen)
         if cat.pos == mouse.pos or goal_pos == mouse.pos:
-            for radius in range(15):
-              screen.blit(blur_surface(screen, radius/4.0), (0,0))
-              time.sleep(0.02)
+            text = goal_pos == mouse.pos and "You Win" or "You Lose"
+            text_color = goal_pos == mouse.pos and Color.WON or Color.LOSE
+            text_surface = font.render(text, 1, text_color)
+            text_pos = (
+                (screen_size[0]-text_surface.get_size()[0])/2,
+                (screen_size[1]-text_surface.get_size()[1])/2)
+                
+            pygame.draw.rect(screen,
+                    (63, 63, 127),
+                    (
+                      (screen_size[0]-text_surface.get_size()[0])/2 - CASE_SIZE/2,
+                      (screen_size[1]-text_surface.get_size()[1])/2 - CASE_SIZE/2,
+                      text_surface.get_size()[0] + CASE_SIZE,
+                      text_surface.get_size()[1] + CASE_SIZE
+                    ), 0)
+
+            scr = screen.copy()
+            for radius in range(45):
+              screen.blit(blur_surface(scr, radius/4.0), (0,0))
+              screen.blit(text_surface, text_pos)
               pygame.display.flip()
+              time.sleep(0.02)
             while running:
               for event in pygame.event.get():
                 if event.type == pygame.QUIT:
